@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nyanго</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400&family=M+PLUS+1+Code:wght@300;400&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111;
+    --line: #222;
+    --accent: #e8ff47;
+    --accent-active: #f0517a;
+    --accent-dim: #333;
+    --accent-ui: #e8ff47;
+    --text: #f0f0f0;
+    --text-io: #cccccc;
+    --muted: #444;
+    --muted2: #666;
+  }
+
+  html, body { height: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem 1.5rem;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: 520px;
+  }
+
+  .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 1rem;
+  }
+
+  .logo {
+    font-family: 'DM Mono', monospace;
+    font-weight: 300;
+    font-size: 1rem;
+    letter-spacing: 0.2em;
+    color: var(--accent-ui);
+    transition: color 0.4s ease;
+  }
+
+  .logo span { color: var(--muted2); }
+
+  .mode {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .mode-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    color: var(--muted2);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.15s;
+    text-transform: uppercase;
+  }
+
+  .mode-btn.active { color: var(--accent-ui); transition: color 0.4s ease; }
+  .mode-btn:hover { color: var(--text); }
+
+  .field {
+    position: relative;
+    margin-bottom: 1px;
+  }
+
+  .field-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted2);
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    pointer-events: none;
+  }
+
+  textarea {
+    width: 100%;
+    height: 200px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-bottom: none;
+    color: var(--text-io);
+    font-family: 'M PLUS 1 Code', monospace;
+    font-size: 0.82rem;
+    font-weight: 300;
+    line-height: 1.8;
+    padding: 1rem;
+    resize: vertical;
+    outline: none;
+    overflow-y: auto;
+    transition: border-color 0.15s;
+  }
+
+  textarea:focus { border-color: var(--muted); }
+  textarea::placeholder { color: var(--muted); font-style: italic; }
+
+  .run-btn {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    background: var(--accent);
+    color: #0a0a0a;
+    transition: background 0.4s ease, opacity 0.15s;
+    border: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: block;
+  }
+
+  .run-btn:hover { opacity: 0.85; }
+  .run-btn:active { opacity: 0.7; }
+
+  .output-wrap {
+    position: relative;
+    margin-top: 1px;
+  }
+
+  .output {
+    width: 100%;
+    height: 200px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-top: none;
+    padding: 1rem 1rem 2.8rem;
+    font-family: 'M PLUS 1 Code', monospace;
+    font-size: 0.82rem;
+    font-weight: 300;
+    line-height: 1.8;
+    color: var(--text-io);
+    word-break: break-all;
+    white-space: pre-wrap;
+    overflow-y: auto;
+  }
+
+  .output.empty { color: var(--muted); font-style: italic; }
+
+  .copy-btn {
+    position: absolute;
+    bottom: 0.8rem;
+    right: 0.8rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted2);
+    background: none;
+    border: 1px solid var(--line);
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  .char-count {
+    position: absolute;
+    bottom: 0.85rem;
+    left: 1rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  .error {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: #ff4747;
+    margin-top: 0.6rem;
+    display: none;
+  }
+
+  .error.show { display: block; }
+
+  footer {
+    margin-top: 2rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .keys {
+    display: flex;
+    justify-content: center;
+    gap: 1.2rem;
+    margin-top: 0.6rem;
+    color: var(--muted2);
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+  }
+
+  /* スクロールバー */
+  textarea::-webkit-scrollbar,
+  .output::-webkit-scrollbar {
+    width: 3px;
+  }
+  textarea::-webkit-scrollbar-track,
+  .output::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  textarea::-webkit-scrollbar-thumb,
+  .output::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 999px;
+  }
+  textarea::-webkit-scrollbar-thumb:hover,
+  .output::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="head">
+    <div class="logo">nyango<span>_</span></div>
+    <div class="mode">
+      <button class="mode-btn" id="btn-hard">hard</button>
+      <button class="mode-btn active" id="btn-lite">lite</button>
+      <button class="mode-btn" id="btn-decode">decode</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <textarea id="input-area" placeholder=""></textarea>
+  </div>
+
+  <button class="run-btn" id="run-btn">convert</button>
+
+  <div class="output-wrap">
+    <div class="output empty" id="output-area">—</div>
+    <span class="char-count" id="char-count"></span>
+    <button class="copy-btn" id="copy-btn">copy</button>
+  </div>
+
+  <div class="error" id="error-msg">parse error — invalid nyan sequence</div>
+</div>
+
+<footer>
+  <div class="keys">
+    <span>← →  mode</span>
+    <span>↑ focus</span>
+    <span>↓ copy</span>
+    <span>esc unfocus</span>
+  </div>
+</footer>
+
+<script>
+const NyancoderCore = (() => {
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder("utf-8");
+  const NYAN_TOKENS = [
+    "にゃー","にゃあ","にゃお","にゃん",
+    "にゃっ","みゃー","みゃあ","みゃお",
+    "みゃう","みゃっ","まー","まーお",
+    "ふー","うー","しゃー","あおー"
+  ];
+  function bytesToNyango(bytes) {
+    const out = [];
+    for (let b of bytes) {
+      out.push(NYAN_TOKENS[(b >> 4) & 0x0f]);
+      out.push(NYAN_TOKENS[b & 0x0f]);
+    }
+    return out.join(" ");
+  }
+  function nyangoToBytes(text) {
+    const parts = text.trim().split(/\s+/);
+    if (parts.length % 2 !== 0) throw new Error();
+    const rev = new Map(NYAN_TOKENS.map((v, i) => [v, i]));
+    const out = new Uint8Array(parts.length / 2);
+    for (let i = 0; i < out.length; i++) {
+      const hi = rev.get(parts[i * 2]);
+      const lo = rev.get(parts[i * 2 + 1]);
+      if (hi === undefined || lo === undefined) throw new Error();
+      out[i] = (hi << 4) | lo;
+    }
+    return out;
+  }
+  return { encoder, decoder, bytesToNyango, nyangoToBytes };
+})();
+
+// 暗号化コア
+const CryptoCore = (() => {
+  // アプリ内固定シークレット（ソース見ればわかるけどAIにポイ投げは無理）
+  const SECRET = 'Welcome-to-nyango';
+
+  async function getKey() {
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(SECRET),
+      { name: 'PBKDF2' },
+      false,
+      ['deriveKey']
+    );
+    return crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: new TextEncoder().encode('nyan-salt-mochi'), iterations: 100000, hash: 'SHA-256' },
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  }
+
+  async function encrypt(text) {
+    const key = await getKey();
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const encoded = new TextEncoder().encode(text);
+    const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
+    const result = new Uint8Array(iv.length + encrypted.byteLength);
+    result.set(iv, 0);
+    result.set(new Uint8Array(encrypted), iv.length);
+    return result;
+  }
+
+  async function decrypt(bytes) {
+    const key = await getKey();
+    const iv = bytes.slice(0, 12);
+    const data = bytes.slice(12);
+    const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
+    return new TextDecoder().decode(decrypted);
+  }
+
+  return { encrypt, decrypt };
+})();
+
+// モード: 'hard' | 'lite' | 'decode'
+let mode = 'lite';
+const btnHard   = document.getElementById('btn-hard');
+const btnLite   = document.getElementById('btn-lite');
+const btnDecode = document.getElementById('btn-decode');
+const inputArea  = document.getElementById('input-area');
+const outputArea = document.getElementById('output-area');
+const runBtn     = document.getElementById('run-btn');
+const copyBtn    = document.getElementById('copy-btn');
+const errorMsg   = document.getElementById('error-msg');
+
+const MODES = ['hard', 'lite', 'decode'];
+
+function setMode(m) {
+  mode = m;
+  btnHard.classList.toggle('active',   m === 'hard');
+  btnLite.classList.toggle('active',   m === 'lite');
+  btnDecode.classList.toggle('active', m === 'decode');
+  inputArea.value = '';
+  setOutput(null);
+  errorMsg.classList.remove('show');
+  runBtn.style.background = '#e8ff47';
+  // hardモードのときだけshift+enterヒント表示
+  runBtn.textContent = m === 'hard' ? 'shift+enter  convert' : 'convert';
+}
+
+function setOutput(text) {
+  if (text === null) {
+    outputArea.textContent = '—';
+    outputArea.classList.add('empty');
+    document.getElementById('char-count').textContent = '';
+  } else {
+    outputArea.textContent = text;
+    outputArea.classList.remove('empty');
+    outputArea.scrollTop = outputArea.scrollHeight;
+    document.getElementById('char-count').textContent = text.length + ' chars';
+  }
+}
+
+btnHard.addEventListener('click', () => setMode('hard'));
+btnLite.addEventListener('click', () => setMode('lite'));
+btnDecode.addEventListener('click', () => setMode('decode'));
+
+async function convert() {
+  const text = inputArea.value.trim();
+  errorMsg.classList.remove('show');
+  runBtn.style.background = text ? '#f0517a' : '#e8ff47';
+  if (!text) { setOutput(null); return; }
+  try {
+    let result;
+    if (mode === 'hard') {
+      const encrypted = await CryptoCore.encrypt(text);
+      result = NyancoderCore.bytesToNyango(encrypted);
+    } else if (mode === 'lite') {
+      result = NyancoderCore.bytesToNyango(NyancoderCore.encoder.encode(text));
+    } else {
+      // decode: liteかhardか自動判定
+      const bytes = NyancoderCore.nyangoToBytes(text);
+      // 28バイト以上 かつ AES-GCMとして復号できればhard
+      try {
+        result = await CryptoCore.decrypt(bytes);
+      } catch(e) {
+        // 復号失敗 = liteエンコードとして扱う
+        result = NyancoderCore.decoder.decode(bytes);
+      }
+    }
+    setOutput(result);
+  } catch(e) {
+    setOutput(null);
+    errorMsg.classList.add('show');
+  }
+}
+
+runBtn.addEventListener('click', convert);
+
+// liteとdecodeはリアルタイム、hardはshift+enterのみ
+inputArea.addEventListener('input', () => {
+  if (mode === 'hard') {
+    runBtn.style.background = inputArea.value.trim() ? '#f0517a' : '#e8ff47';
+  } else {
+    convert();
+  }
+});
+
+inputArea.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.shiftKey && mode === 'hard') {
+    e.preventDefault();
+    convert();
+  }
+});
+
+const logoEl = document.querySelector('.logo');
+
+inputArea.addEventListener('focus', () => {
+  logoEl.style.color = '#333';
+  btnHard.style.color   = mode === 'hard'   ? '#888' : '#2a2a2a';
+  btnLite.style.color   = mode === 'lite'   ? '#888' : '#2a2a2a';
+  btnDecode.style.color = mode === 'decode' ? '#888' : '#2a2a2a';
+});
+
+inputArea.addEventListener('blur', () => {
+  logoEl.style.color = '';
+  btnHard.style.color = '';
+  btnLite.style.color = '';
+  btnDecode.style.color = '';
+  runBtn.style.background = '#e8ff47';
+});
+
+inputArea.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    inputArea.blur();
+  }
+});
+
+// 矢印キーグローバル操作
+// ← encode / → decode / ↑ 入力欄フォーカス / ↓ 結果コピー
+document.addEventListener('keydown', (e) => {
+  // textarea入力中は ← → だけ除外（↑↓はフォーカス外でのみ）
+  const inTextarea = document.activeElement === inputArea;
+
+  if (e.key === 'ArrowLeft' && !inTextarea) {
+    e.preventDefault();
+    const idx = MODES.indexOf(mode);
+    setMode(MODES[Math.max(0, idx - 1)]);
+  } else if (e.key === 'ArrowRight' && !inTextarea) {
+    e.preventDefault();
+    const idx = MODES.indexOf(mode);
+    setMode(MODES[Math.min(MODES.length - 1, idx + 1)]);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    inputArea.focus();
+    // カーソルを末尾に
+    const len = inputArea.value.length;
+    inputArea.setSelectionRange(len, len);
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (!outputArea.classList.contains('empty')) {
+      navigator.clipboard.writeText(outputArea.textContent).then(() => {
+        const orig = copyBtn.textContent;
+        copyBtn.textContent = 'copied';
+        setTimeout(() => copyBtn.textContent = orig, 1000);
+      });
+    }
+  }
+});
+
+copyBtn.addEventListener('click', () => {
+  if (outputArea.classList.contains('empty')) return;
+  navigator.clipboard.writeText(outputArea.textContent).then(() => {
+    const orig = copyBtn.textContent;
+    copyBtn.textContent = 'copied';
+    setTimeout(() => copyBtn.textContent = orig, 1000);
+  });
+});
+</script>
+</body>
+</html>
